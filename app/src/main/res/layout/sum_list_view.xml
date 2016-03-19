@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/playerNameSum"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:gravity="center_vertical|left"
+        android:minHeight="?android:attr/listPreferredItemHeightSmall"
+        android:paddingEnd="?android:attr/listPreferredItemPaddingEnd"
+        android:paddingStart="?android:attr/listPreferredItemPaddingStart"
+        android:text="Chen M."
+        android:textAppearance="?android:attr/textAppearanceListItemSmall" />
+
+    <TextView
+        android:id="@+id/playerGamesPayed"
+        android:layout_width="70dp"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="-20.00"
+        android:textSize="12dp"
+        android:minHeight="?android:attr/listPreferredItemHeightSmall"
+        android:paddingEnd="?android:attr/listPreferredItemPaddingEnd"
+        android:paddingStart="?android:attr/listPreferredItemPaddingStart"
+        android:textAppearance="?android:attr/textAppearanceListItemSmall"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/playerProfit"
+        android:layout_toStartOf="@+id/playerProfit" />
+
+    <TextView
+        android:id="@+id/playerProfit"
+        android:layout_width="75dp"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="+200.00"
+        android:textSize="12dp"
+        android:minHeight="?android:attr/listPreferredItemHeightSmall"
+        android:paddingEnd="?android:attr/listPreferredItemPaddingEnd"
+        android:paddingStart="?android:attr/listPreferredItemPaddingStart"
+        android:textAppearance="?android:attr/textAppearanceListItemSmall"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="70dp"
+        android:layout_height="match_parent"
+        android:text="156"
+        android:id="@+id/playerScoreCell"
+        android:textSize="12dp"
+        android:minHeight="?android:attr/listPreferredItemHeightSmall"
+        android:paddingEnd="?android:attr/listPreferredItemPaddingEnd"
+        android:paddingStart="?android:attr/listPreferredItemPaddingStart"
+        android:textAppearance="?android:attr/textAppearanceListItemSmall"
+        android:gravity="center"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/playerGamesPayed"
+        android:layout_toStartOf="@+id/playerGamesPayed" />
+
+
+</RelativeLayout>

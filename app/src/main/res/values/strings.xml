@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Bowling Remi</string>
+    <string name="action_settings">Settings</string>
+    <string name="players_list">Players List</string>
+    <string name="title_activity_results">ResultsActivity</string>
+    <string name="score">Score</string>
+    <string name="set">Set</string>
+    <string name="cancel">Cancel</string>
+</resources>
