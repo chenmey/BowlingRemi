@@ -43,6 +43,7 @@ public class CouplesScoresActivity extends AppCompatActivity {
         currentGame = (CouplesGame) db.getGamesList().get(db.getCurrentGameNum() - 1);
 
         // TODO: 18-Mar-16 adding current Couples List in DB (to avoid changes in order)
+        // TODO: 20-Mar-16 In summary should display only players that have been playing at least one game.
         // TODO: 08-Mar-16 generating Couples - need to think if refresh is allowed
         generateCouples();
 
@@ -212,21 +213,21 @@ public class CouplesScoresActivity extends AppCompatActivity {
     public void NextResults(View view) {
 
         if (ValidatePlayersScores()) {
+            for (Couple c : currentGame.getCouplesList()) {
+                Integer playerOneScore = c.getPlayerOne().getGamesMap().get(c.getGameId()).getScore();
+                if (c.getPlayerTwo() == null)
+                    c.setCombinedScore(190 + playerOneScore);
+                else {
+                    Integer playerTwoScore = c.getPlayerTwo().getGamesMap().get(c.getGameId()).getScore();
+                    c.setCombinedScore(playerOneScore + playerTwoScore);
+                }
+            }
             Intent intent = new Intent(this, SumCoupleGameActivity.class);
             startActivity(intent);
         }
         else {
             Toast toast = Toast.makeText(this, "Some of the players have no score", Toast.LENGTH_SHORT);
             toast.show();
-        }
-        for (Couple c : currentGame.getCouplesList()) {
-            Integer playerOneScore = c.getPlayerOne().getGamesMap().get(c.getGameId()).getScore();
-            if (c.getPlayerTwo() == null)
-                c.setCombinedScore(190 + playerOneScore);
-            else {
-                Integer playerTwoScore = c.getPlayerTwo().getGamesMap().get(c.getGameId()).getScore();
-                c.setCombinedScore(playerOneScore + playerTwoScore);
-            }
         }
     }
 
@@ -251,6 +252,7 @@ public class CouplesScoresActivity extends AppCompatActivity {
             player = couple.getPlayerTwo();
 
         player.getGamesMap().get(couple.getGameId()).setScore(score);
+        player.getGamesMap().get(couple.getGameId()).setOrigScore(score);
         couple.setCombinedScore(couple.getCombinedScore() + score);
         sectionAdapter.notifyDataSetChanged();
     }

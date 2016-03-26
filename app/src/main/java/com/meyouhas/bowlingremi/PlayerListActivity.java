@@ -78,6 +78,8 @@ public class PlayerListActivity extends AppCompatActivity {
         String newName = et.getText().toString();
 
         int res = db.addPlayer(newName);
+
+        // TODO: 20-Mar-16 change to switch case 
         if (res == 1){
             toast = Toast.makeText(this, "Empty name!", Toast.LENGTH_SHORT);
             toast.show();

@@ -1,5 +1,6 @@
 package com.meyouhas.bowlingremi;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v7.app.AppCompatActivity;
@@ -225,4 +226,9 @@ public class SumCoupleGameActivity extends AppCompatActivity {
         }
     }
 
+    public void FinishCouplesGame(View view) {
+        Intent intent = new Intent(this, ChooseActionActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+    }
 }

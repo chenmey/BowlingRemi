@@ -1,14 +1,24 @@
 package com.meyouhas.bowlingremi;
 
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.applidium.headerlistview.HeaderListView;
+import com.applidium.headerlistview.SectionAdapter;
 
 import java.util.ArrayList;
 
@@ -16,6 +26,9 @@ public class GameHistoryActivity extends AppCompatActivity {
 
     private DataBaseST db;
     private SumGameArrayAdapter sumGameArrayAdapter;
+    private SectionAdapter sectionAdapter = null;
+    private HeaderListView headerListView;
+    private ListView regularListView;
     private ArrayList<Game> gamesList;
     private Game currentGame;
     private boolean hasAtLeastOneChange;
@@ -34,15 +47,25 @@ public class GameHistoryActivity extends AppCompatActivity {
         gamesList = db.getGamesList();
         hasAtLeastOneChange = false;
 
-        // Set new arrayadapter to hold the first game list.
-        setSumGameArrayAdapter(0);
+        regularListView = (ListView) findViewById(R.id.listViewHistory);
+        headerListView = new HeaderListView(this);
+
+        RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        p.addRule(RelativeLayout.BELOW, R.id.nameHistory);
+        p.addRule(RelativeLayout.ABOVE, R.id.save_history);
+        p.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        p.addRule(RelativeLayout.ALIGN_PARENT_END);
+        headerListView.setLayoutParams(p);
+        RelativeLayout rl = (RelativeLayout) findViewById(R.id.history_layout);
+        rl.addView(headerListView);
+        setContentView(rl);
 
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
-        ArrayList<String> arrOfGames = new ArrayList<String>();
+        ArrayList<String> arrOfGames = new ArrayList<>();
         for (Integer i=1 ; i<= db.getCurrentGameNum() ; i++) {
             arrOfGames.add("Game " + i.toString());
         }
-        ArrayAdapter<String> adp = new ArrayAdapter<String> (this,android.R.layout.simple_spinner_dropdown_item,arrOfGames);
+        ArrayAdapter<String> adp = new ArrayAdapter<> (this,android.R.layout.simple_spinner_dropdown_item,arrOfGames);
         spinner.setAdapter(adp);
         spinner.setSelection(0);
 
@@ -51,7 +74,13 @@ public class GameHistoryActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long arg3)
             {
-                setSumGameArrayAdapter(position);
+                currentGame = gamesList.get(position);
+                if (currentGame instanceof CouplesGame) {
+                    setSumCouplesGameArrayAdapter();
+                }
+                else {
+                    setSumGameArrayAdapter();
+                }
             }
 
             @Override
@@ -69,17 +98,18 @@ public class GameHistoryActivity extends AppCompatActivity {
         }
     }
 
-    private void setSumGameArrayAdapter (Integer gamePosition) {
-        currentGame = gamesList.get(gamePosition);
-        if (currentGame instanceof Game)
-            sumGameArrayAdapter = new SumGameArrayAdapter(this, 0, ((Game) currentGame).getPlayersList(),currentGame.getId());
-        ListView listView = (ListView) findViewById(R.id.listViewHistory);
-        listView.setAdapter(sumGameArrayAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    private void setSumGameArrayAdapter () {
+
+        regularListView.setVisibility(View.VISIBLE);
+        headerListView.setVisibility(View.INVISIBLE);
+
+        sumGameArrayAdapter = new SumGameArrayAdapter(this, 0, currentGame.getPlayersList(),currentGame.getId());
+        regularListView.setAdapter(sumGameArrayAdapter);
+        regularListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                if (sumGameArrayAdapter.isEdit() == false)
+                if (!sumGameArrayAdapter.isEdit())
                     return;
 
                 Player player = sumGameArrayAdapter.getItem(position);
@@ -95,6 +125,114 @@ public class GameHistoryActivity extends AppCompatActivity {
                 dialog.show(getFragmentManager(), "ResultFragment");
             }
         });
+    }
+    private void setSumCouplesGameArrayAdapter() {
+
+        headerListView.setVisibility(View.VISIBLE);
+        regularListView.setVisibility(View.INVISIBLE);
+
+        if (sectionAdapter != null) {
+            sectionAdapter.notifyDataSetChanged();
+            return;
+        }
+
+        sectionAdapter = new SectionAdapter() {
+
+            @Override
+            public Object getRowItem(int section, int row) {
+                return null;
+            }
+
+            @Override
+            public int numberOfSections() {
+                if (!(currentGame instanceof CouplesGame))
+                    return  0;
+
+                return ((CouplesGame)currentGame).getCouplesList().size();
+            }
+
+            @Override
+            public int numberOfRows(int section) {
+                return 2;
+            }
+
+            @Override
+            public boolean hasSectionHeaderView(int section) {
+                return true;
+            }
+
+            @Override
+            public View getRowView(int section, int row, View convertView, ViewGroup parent) {
+
+                if (!(currentGame instanceof CouplesGame))
+                    return  convertView;
+
+                if (convertView == null) {
+                    convertView =  getLayoutInflater().inflate(R.layout.sum_list_view, null);
+                }
+
+                TextView tvPlayerName = (TextView) convertView.findViewById(R.id.playerNameSum);
+                TextView tvPlayerScore = (TextView) convertView.findViewById(R.id.playerScoreCell);
+                TextView tvPlayerGames = (TextView) convertView.findViewById(R.id.playerGamesPayed);
+                TextView tvPlayerProfit = (TextView) convertView.findViewById(R.id.playerProfit);
+
+                Couple couple = ((CouplesGame)currentGame).getCouplesList().get(section);
+                if (row == 0) {
+                    PlayerGame pg = couple.getPlayerOne().getGamesMap().get(couple.getGameId());
+                    tvPlayerName.setText(couple.getPlayerOne().getName());
+                    tvPlayerScore.setText(pg.getScore().toString());
+                    tvPlayerGames.setText(pg.getGames().toString());
+                    tvPlayerProfit.setText(pg.getProfit().toString());
+                }
+                else {
+                    if (couple.getPlayerTwo() != null) {
+                        PlayerGame pg = couple.getPlayerTwo().getGamesMap().get(couple.getGameId());
+                        tvPlayerName.setText(couple.getPlayerTwo().getName());
+                        tvPlayerScore.setText(pg.getScore().toString());
+                        tvPlayerGames.setText(pg.getGames().toString());
+                        tvPlayerProfit.setText(pg.getProfit().toString());
+                    }
+                    else {
+                        tvPlayerName.setText("Blind");
+                        tvPlayerScore.setText("190");
+                        tvPlayerProfit.setText("");
+                        tvPlayerGames.setText("");
+                    }
+                }
+
+                return convertView;
+            }
+
+            @Override
+            public View getSectionHeaderView(int section, View convertView, ViewGroup parent) {
+
+                if (!(currentGame instanceof CouplesGame))
+                    return  convertView;
+
+                if (convertView == null)
+                    convertView = getLayoutInflater().inflate(R.layout.sum_list_view, null);
+
+                TextView tvPlayerName = (TextView) convertView.findViewById(R.id.playerNameSum);
+                TextView tvPlayerScore = (TextView) convertView.findViewById(R.id.playerScoreCell);
+                TextView tvPlayerGames = (TextView) convertView.findViewById(R.id.playerGamesPayed);
+                TextView tvPlayerProfit = (TextView) convertView.findViewById(R.id.playerProfit);
+
+                Couple couple = ((CouplesGame)currentGame).getCouplesList().get(section);
+
+                tvPlayerName.setText("Team " + couple.getTeamId());
+                tvPlayerScore.setText(couple.getCombinedScore().toString());
+                tvPlayerScore.setTextColor(Color.BLUE);
+                tvPlayerScore.setTypeface(tvPlayerScore.getTypeface(), Typeface.BOLD_ITALIC);
+
+                tvPlayerProfit.setText("");
+                tvPlayerGames.setText("");
+
+                convertView.setBackgroundColor(Color.LTGRAY);
+                return convertView;
+            }
+        };
+
+        headerListView.setAdapter(sectionAdapter);
     }
 
     public void EditScores(View view) {
@@ -116,9 +254,6 @@ public class GameHistoryActivity extends AppCompatActivity {
         pg.setScore(score);
         hasAtLeastOneChange = true;
         sumGameArrayAdapter.notifyDataSetChanged();
-/*
-        Toast toast = Toast.makeText(this, "TESTTTTTTTTTTT", Toast.LENGTH_SHORT);
-        toast.show(); */
     }
 
     public void cancelChanges(View view) {
