@@ -26,6 +26,7 @@ public class SumRemiActivity extends AppCompatActivity {
 
         db = DataBaseST.getInstance();
 
+        db.cleanPlayersWithNoGames();
         Player.setIsProfitCompare(true);
         Collections.sort(db.getAllPlayersList());
         Collections.reverse(db.getAllPlayersList());

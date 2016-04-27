@@ -41,7 +41,7 @@ public class SumCoupleGameActivity extends AppCompatActivity {
         db = DataBaseST.getInstance();
         currentGame = (CouplesGame) db.getGamesList().get(db.getCurrentGameNum() - 1);
 
-        calculateResults();
+        calculateResults(currentGame);
 
         HeaderListView list = new HeaderListView(this);
         sectionAdapter = new SectionAdapter() {
@@ -139,8 +139,9 @@ public class SumCoupleGameActivity extends AppCompatActivity {
         setContentView(rl);
     }
 
-    private void calculateResults() {
+    public static void calculateResults(CouplesGame currentGame) {
 
+        Player.setIsProfitCompare(false);
         Collections.sort(currentGame.getCouplesList());
         Collections.sort(currentGame.getPlayersList());
 

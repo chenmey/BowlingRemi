@@ -33,7 +33,7 @@ public class ResultDialogFragment extends DialogFragment {
         invokedFrom = b.getInt("invokedFrom");
 
         playerTeam = -1;
-        if (invokedFrom == 3)
+        if (invokedFrom > 2)
             playerTeam = b.getInt("playerTeam");
 
         // Inflate and set the layout for the dialog
@@ -67,10 +67,13 @@ public class ResultDialogFragment extends DialogFragment {
                                 SinglesScoresActivity.class.cast(getActivity()).updatePlayerScore(playerIndex,score);
                                 break;
                             case 2:
-                                GameHistoryActivity.class.cast(getActivity()).savePlayerScore(playerIndex,score);
+                                GameHistoryActivity.class.cast(getActivity()).savePlayerScore(playerIndex, score);
                                 break;
                             case 3:
-                                CouplesScoresActivity.class.cast(getActivity()).updatePlayerScoreInCouple(playerTeam, playerIndex,score);
+                                CouplesScoresActivity.class.cast(getActivity()).updatePlayerScoreInCouple(playerTeam, playerIndex, score);
+                                break;
+                            case 4:
+                                GameHistoryActivity.class.cast(getActivity()).savePlayerScoreInCouple(playerTeam, playerIndex, score);
                                 break;
 
                         }

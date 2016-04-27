@@ -40,9 +40,7 @@ public class PlayerListActivity extends AppCompatActivity {
         isCouplesGame = this.getIntent().getBooleanExtra("isCouplesGame",false);
         db = DataBaseST.getInstance();
         db.createNewGame(isCouplesGame);
-     //   ArrayList playersList = db.getGamesList().get(db.getCurrentGameNum()).getPlayersList();
         playerArrayAdapter = new PlayerArrayAdapter(this,0 ,db.getCurrentGamePlayersList());
-  //      playerArrayAdapter = new ArrayAdapter<Player>(this,android.R.layout.simple_list_item_1,db.getCurrentGamePlayersList());
         listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(playerArrayAdapter);
     }
@@ -79,29 +77,26 @@ public class PlayerListActivity extends AppCompatActivity {
 
         int res = db.addPlayer(newName);
 
-        // TODO: 20-Mar-16 change to switch case 
-        if (res == 1){
-            toast = Toast.makeText(this, "Empty name!", Toast.LENGTH_SHORT);
-            toast.show();
-            return;
-        }
+        switch (res) {
 
-        if (res == 2){
-            toast = Toast.makeText(this, "Name is too long!", Toast.LENGTH_SHORT);
-            toast.show();
-            return;
-        }
+            case 1:
+                toast = Toast.makeText(this, "Empty name!", Toast.LENGTH_SHORT);
+                toast.show();
+                break;
 
-        if (res == 3){
-            toast = Toast.makeText(this, "Name already exists!", Toast.LENGTH_SHORT);
-            toast.show();
-            return;
+            case 2:
+                toast = Toast.makeText(this, "Name is too long!", Toast.LENGTH_SHORT);
+                toast.show();
+                break;
+
+            case 3:
+                toast = Toast.makeText(this, "Name already exists!", Toast.LENGTH_SHORT);
+                toast.show();
+                break;
+
+            default:
+                et.getText().clear();
         }
-        et.getText().clear();
-        /*
-        et.clearFocus();
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0); */
     }
 
     public void nextMainHandler(View view) {
@@ -137,14 +132,12 @@ public class PlayerListActivity extends AppCompatActivity {
 
         for (Player player : db.getCurrentGamePlayersList()) {
             PlayerGame playerGame = new PlayerGame();
-   //         player.getPlayerGames().add(playerGame);
             player.getGamesMap().put(db.getCurrentGameNum(), playerGame);
         }
     }
 
     public void cleanListHandler(View view) {
         db.cleanCurrentPlayersList();
-  //      playerArrayAdapter.clear();
         playerArrayAdapter.notifyDataSetChanged();
     }
 

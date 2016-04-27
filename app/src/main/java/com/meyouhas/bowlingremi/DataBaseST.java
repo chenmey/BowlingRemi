@@ -10,23 +10,17 @@ public class DataBaseST {
     private static DataBaseST ourInstance = new DataBaseST();
     private Integer currentGameNum;
     private ArrayList<Player> currentGamePlayersList;
+    private ArrayList<Couple> currentGameCouplesList;
     private ArrayList<Player> allPlayersList;
     private ArrayList<Game> gamesList;
     private Game currentGame;
 
-    public Integer getCurrentGameNum() {
-        return currentGameNum;
-    }
-    public void setCurrentGameNum(Integer currentGameNum) {
-        this.currentGameNum = currentGameNum;
-    }
-
-    private DataBaseST() {}
 
     public void InitDB() {
         allPlayersList = new ArrayList<>();
         currentGamePlayersList = new ArrayList<>();
         gamesList = new ArrayList<>();
+        currentGameCouplesList = new ArrayList<>();
         currentGameNum = 0;
     }
 
@@ -106,5 +100,29 @@ public class DataBaseST {
 
     public Game getCurrentGame() {
         return this.getGamesList().get(this.getCurrentGameNum() - 1);
+    }
+    public Integer getCurrentGameNum() {
+        return currentGameNum;
+    }
+    public void setCurrentGameNum(Integer currentGameNum) {
+        this.currentGameNum = currentGameNum;
+    }
+
+    private DataBaseST() {}
+
+    public ArrayList<Couple> getCurrentGameCouplesList() {
+        return currentGameCouplesList;
+    }
+
+    public void setCurrentGameCouplesList(ArrayList<Couple> currentGameCouplesList) {
+        this.currentGameCouplesList = currentGameCouplesList;
+    }
+
+    public void cleanPlayersWithNoGames() {
+        ArrayList<Player> tmp = new ArrayList<>(getAllPlayersList());
+        for (Player p : tmp) {
+            if (p.getGamesMap().size() == 0)
+                getAllPlayersList().remove(p);
+        }
     }
 }

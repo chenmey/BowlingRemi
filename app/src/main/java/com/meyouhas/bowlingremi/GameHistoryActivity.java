@@ -32,6 +32,7 @@ public class GameHistoryActivity extends AppCompatActivity {
     private ArrayList<Game> gamesList;
     private Game currentGame;
     private boolean hasAtLeastOneChange;
+    private boolean isEditMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +47,7 @@ public class GameHistoryActivity extends AppCompatActivity {
         db = DataBaseST.getInstance();
         gamesList = db.getGamesList();
         hasAtLeastOneChange = false;
+        isEditMode = false;
 
         regularListView = (ListView) findViewById(R.id.listViewHistory);
         headerListView = new HeaderListView(this);
@@ -176,6 +178,15 @@ public class GameHistoryActivity extends AppCompatActivity {
                 TextView tvPlayerGames = (TextView) convertView.findViewById(R.id.playerGamesPayed);
                 TextView tvPlayerProfit = (TextView) convertView.findViewById(R.id.playerProfit);
 
+                if (isEditMode) {
+                    tvPlayerScore.setTextColor(Color.RED);
+                    tvPlayerScore.setTypeface(null, Typeface.BOLD_ITALIC);
+                }
+                else {
+                    tvPlayerScore.setTextColor(Color.BLACK);
+                    tvPlayerScore.setTypeface(null, Typeface.NORMAL);
+                }
+
                 Couple couple = ((CouplesGame)currentGame).getCouplesList().get(section);
                 if (row == 0) {
                     PlayerGame pg = couple.getPlayerOne().getGamesMap().get(couple.getGameId());
@@ -230,19 +241,59 @@ public class GameHistoryActivity extends AppCompatActivity {
                 convertView.setBackgroundColor(Color.LTGRAY);
                 return convertView;
             }
+
+            @Override
+            public void onRowItemClick(AdapterView<?> parent, View view, int section, int row, long id) {
+                super.onRowItemClick(parent, view, section, row, id);
+
+                if (!isEditMode)
+                    return;
+
+                Couple couple = ((CouplesGame)currentGame).getCouplesList().get(section);
+                Player player;
+                if (row == 0)
+                    player = couple.getPlayerOne();
+                else {
+                    if (couple.getPlayerTwo() == null)
+                        return;
+
+                    player = couple.getPlayerTwo();
+                }
+
+                ResultDialogFragment dialog = new ResultDialogFragment();
+                Bundle b = new Bundle();
+                b.putString("playerName", player.getName());
+                b.putInt("playerTeam", section);
+                b.putInt("playerIndex", row);
+                // TODO: 16-Mar-16 adding Macro or Enum
+                b.putInt("invokedFrom", 4);
+
+                dialog.setArguments(b);
+                dialog.show(getFragmentManager(), "ResultFragment");
+
+            }
         };
 
         headerListView.setAdapter(sectionAdapter);
     }
 
     public void EditScores(View view) {
-        sumGameArrayAdapter.setIsEdit(true);
+        isEditMode = true;
+
+        if (sumGameArrayAdapter != null)
+            sumGameArrayAdapter.setIsEdit(true);
+
         Button b = (Button) findViewById(R.id.cancel_changes);
         b.setVisibility(View.VISIBLE);
 
         b = (Button) findViewById(R.id.save_history);
         b.setVisibility(View.VISIBLE);
-        sumGameArrayAdapter.notifyDataSetChanged();
+
+        if (sectionAdapter != null)
+            sectionAdapter.notifyDataSetChanged();
+
+        if (sumGameArrayAdapter != null)
+            sumGameArrayAdapter.notifyDataSetChanged();
     }
 
     public void savePlayerScore(int playerIndex, Integer score) {
@@ -252,20 +303,18 @@ public class GameHistoryActivity extends AppCompatActivity {
         }
 
         pg.setScore(score);
+
         hasAtLeastOneChange = true;
         sumGameArrayAdapter.notifyDataSetChanged();
     }
 
     public void cancelChanges(View view) {
-        if (currentGame instanceof Game) {
-            for (Player p : ((Game) currentGame).getPlayersList()) {
-                PlayerGame pg = p.getGamesMap().get(currentGame.getId());
-                pg.setScore(pg.getOrigScore());
-            }
+        for (Player p : currentGame.getPlayersList()) {
+            PlayerGame pg = p.getGamesMap().get(currentGame.getId());
+            pg.setScore(pg.getOrigScore());
         }
         
         changeToNonEditMode();
-
     }
 
     public void saveAllChanges(View view) {
@@ -273,20 +322,34 @@ public class GameHistoryActivity extends AppCompatActivity {
         if(hasAtLeastOneChange) {
             // 1. decrease the games num to pay and profit from players totals
             // 2. update OrigScore
-            if (currentGame instanceof Game) {
-                for (Player p : ((Game) currentGame).getPlayersList()) {
-                    PlayerGame pg = p.getGamesMap().get(currentGame.getId());
-                    p.setTotalGames(p.getTotalGames() - pg.getGames());
-                    p.setTotalProfit(p.getTotalProfit() - pg.getProfit());
-                    pg.setOrigScore(pg.getScore());
+            for (Player p : currentGame.getPlayersList()) {
+                PlayerGame pg = p.getGamesMap().get(currentGame.getId());
+                p.setTotalGames(p.getTotalGames() - pg.getGames());
+                p.setTotalProfit(p.getTotalProfit() - pg.getProfit());
+                pg.setOrigScore(pg.getScore());
+            }
+
+            if (currentGame instanceof CouplesGame) {
+                Integer playerOneScore;
+                Integer playerTwoScore;
+                for (Couple c : ((CouplesGame) currentGame).getCouplesList()) {
+                    playerOneScore = c.getPlayerOne().getGamesMap().get(currentGame.getId()).getScore();
+                    playerTwoScore = 190;
+                    if (c.getPlayerTwo() != null)
+                        playerTwoScore = c.getPlayerTwo().getGamesMap().get(currentGame.getId()).getScore();
+
+                    c.setCombinedScore(playerOneScore + playerTwoScore);
                 }
             }
 
             // Calculate and update once again according to the new changes
             Integer tmpGameId = db.getCurrentGameNum();
             db.setCurrentGameNum(currentGame.getId());
-            if (currentGame instanceof Game)
-                SumSingleGameActivity.calculateResults((Game) currentGame);
+            if (currentGame instanceof CouplesGame)
+                SumCoupleGameActivity.calculateResults((CouplesGame) currentGame);
+            else
+                SumSingleGameActivity.calculateResults(currentGame);
+
             db.setCurrentGameNum(tmpGameId);
         }
 
@@ -296,7 +359,11 @@ public class GameHistoryActivity extends AppCompatActivity {
     }
 
     private void changeToNonEditMode(){
-        sumGameArrayAdapter.setIsEdit(false);
+        isEditMode = false;
+
+        if (sumGameArrayAdapter != null)
+            sumGameArrayAdapter.setIsEdit(false);
+
         hasAtLeastOneChange = false;
 
         Button b = (Button) findViewById(R.id.cancel_changes);
@@ -304,6 +371,39 @@ public class GameHistoryActivity extends AppCompatActivity {
 
         b = (Button) findViewById(R.id.save_history);
         b.setVisibility(View.GONE);
-        sumGameArrayAdapter.notifyDataSetChanged();
+
+
+        if (sectionAdapter != null)
+            sectionAdapter.notifyDataSetChanged();
+
+        if (sumGameArrayAdapter != null)
+            sumGameArrayAdapter.notifyDataSetChanged();
+    }
+
+    public void savePlayerScoreInCouple(int playerTeam, int playerIndex, Integer score) {
+
+        PlayerGame pg;
+        Couple couple = ((CouplesGame)currentGame).getCouplesList().get(playerTeam);
+        if (playerIndex == 0)
+            pg = couple.getPlayerOne().getGamesMap().get(currentGame.getId());
+        else
+            pg = couple.getPlayerTwo().getGamesMap().get(currentGame.getId());
+
+        if (pg.getScore().equals(score)) {
+            return;
+        }
+
+        pg.setScore(score);
+
+        Integer playerOneScore = couple.getPlayerOne().getGamesMap().get(currentGame.getId()).getScore();
+        Integer playerTwoScore = 190;
+        if (couple.getPlayerTwo() != null)
+            playerTwoScore = couple.getPlayerTwo().getGamesMap().get(currentGame.getId()).getScore();
+
+        couple.setCombinedScore(playerOneScore + playerTwoScore);
+
+        hasAtLeastOneChange = true;
+        sectionAdapter.notifyDataSetChanged();
+
     }
 }

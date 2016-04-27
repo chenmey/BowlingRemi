@@ -42,8 +42,7 @@ public class CouplesScoresActivity extends AppCompatActivity {
         db = DataBaseST.getInstance();
         currentGame = (CouplesGame) db.getGamesList().get(db.getCurrentGameNum() - 1);
 
-        // TODO: 18-Mar-16 adding current Couples List in DB (to avoid changes in order)
-        // TODO: 20-Mar-16 In summary should display only players that have been playing at least one game.
+        // TODO: 18-Mar-16 adding current Couples List in DB (to avoid changes in order) .Check Singles as well in all views and adapters.back buttons after calc arrays reordering
         // TODO: 08-Mar-16 generating Couples - need to think if refresh is allowed
         generateCouples();
 
@@ -57,7 +56,7 @@ public class CouplesScoresActivity extends AppCompatActivity {
 
             @Override
             public int numberOfSections() {
-                return currentGame.getCouplesList().size();
+                return db.getCurrentGameCouplesList().size();
             }
 
             @Override
@@ -79,7 +78,7 @@ public class CouplesScoresActivity extends AppCompatActivity {
                 TextView tvPlayerName = (TextView) convertView.findViewById(R.id.playerName);
                 TextView tvPlayerScore = (TextView) convertView.findViewById(R.id.playerScore);
 
-                Couple couple = currentGame.getCouplesList().get(section);
+                Couple couple = db.getCurrentGameCouplesList().get(section);
                 if (row == 0) {
                     tvPlayerName.setText(couple.getPlayerOne().getName());
                     Integer playerScore = couple.getPlayerOne().getGamesMap().get(couple.getGameId()).getScore();
@@ -112,7 +111,7 @@ public class CouplesScoresActivity extends AppCompatActivity {
                 super.onRowItemClick(parent, view, section, row, id);
 
                 // TODO: 16-Mar-16 change couples to have arraylist of players
-                Couple couple = currentGame.getCouplesList().get(section);
+                Couple couple = db.getCurrentGameCouplesList().get(section);
                 Player player;
                 if (row == 0)
                     player = couple.getPlayerOne();
@@ -141,7 +140,7 @@ public class CouplesScoresActivity extends AppCompatActivity {
                 if (convertView == null)
                     convertView = (TextView) getLayoutInflater().inflate(getResources().getLayout(android.R.layout.simple_list_item_1), null);
 
-                Couple couple = currentGame.getCouplesList().get(section);
+                Couple couple = db.getCurrentGameCouplesList().get(section);
                 ((TextView) convertView).setText("Team " + couple.getTeamId());
                 convertView.setBackgroundColor(Color.LTGRAY);
                 return convertView;
@@ -205,6 +204,7 @@ public class CouplesScoresActivity extends AppCompatActivity {
         }
 
         currentGame.setCouplesList(couplesList);
+        db.setCurrentGameCouplesList(couplesList);
 
     }
 

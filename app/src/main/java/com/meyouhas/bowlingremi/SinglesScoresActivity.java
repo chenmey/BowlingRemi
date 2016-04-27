@@ -43,15 +43,13 @@ public class SinglesScoresActivity extends AppCompatActivity {
         db = DataBaseST.getInstance();
         currentGame = db.getGamesList().get(db.getCurrentGameNum() - 1);
 
-        singlesScoresArrayAdapter = new SinglesScoresArrayAdapter(this,0 ,currentGame.getPlayersList());
+        singlesScoresArrayAdapter = new SinglesScoresArrayAdapter(this,0 ,db.getCurrentGamePlayersList());
         ListView listView = (ListView) findViewById(R.id.listView2);
         listView.setAdapter(singlesScoresArrayAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Player player = currentGame.getPlayersList().get(position);
-                //       Toast toast = Toast.makeText(view.getContext(),player.getName(), Toast.LENGTH_SHORT);
-                //        toast.show();
                 ResultDialogFragment dialog = new ResultDialogFragment();
 
                 Bundle b = new Bundle();
